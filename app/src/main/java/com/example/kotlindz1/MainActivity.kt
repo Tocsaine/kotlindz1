@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MyScreenTest()
+                    SquareList()
                 }
             }
         }
@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MyScreenTest() {
+fun SquareList() {
     val rectangles = rememberSaveable { mutableStateOf(0) }
     Column(
         modifier = Modifier
@@ -57,39 +57,9 @@ fun MyScreenTest() {
 
         val columnCount = if (orientation == Configuration.ORIENTATION_PORTRAIT) 3 else 4
 
-        val tmp: MutableList<Int> = mutableListOf()
-        if(rectangles.value != 0) {
+        val tmp: MutableList<Int> = MakeList(rectangles.value)
 
-            for (i in 0 until rectangles.value) {
-                tmp.add(i)
-            }
-        }
-        val chunkedRectangles = tmp.chunked(columnCount)
-
-        for (row in chunkedRectangles) {
-            Row(modifier = Modifier.fillMaxWidth()) {
-                for (index in row.indices) {
-                    val number = row[index]
-                    val backgroundColor = if (number % 2 == 0) Color.Red else Color.Blue
-
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(8.dp)
-                            .aspectRatio(1f)
-
-                            .background(backgroundColor)
-                    ) {
-                        Text(
-                            text = (number + 1).toString(),
-                            modifier = Modifier.align(Alignment.Center),
-                            color = Color.White
-                        )
-                    }
-                }
-            }
-
-        }
+        MakeSquares(tmp, columnCount)
 
         Button(
             onClick = {
@@ -104,4 +74,38 @@ fun MyScreenTest() {
     }
 }
 
+fun MakeList(rectangles : Int): MutableList<Int>{
+    val tmp: MutableList<Int> = mutableListOf()
+    if(rectangles != 0) {
+        for (i in 0 until rectangles) {
+            tmp.add(i)
+        }
+    }
+    return tmp
+}
 
+@Composable
+fun MakeSquares(tmp: MutableList<Int>, columnCount: Int) {
+    val chunkedRectangles = tmp.chunked(columnCount)
+    for (row in chunkedRectangles) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            for (index in row.indices) {
+                val number = row[index]
+                val backgroundColor = if (number % 2 == 0) Color.Red else Color.Blue
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(8.dp)
+                        .aspectRatio(1f)
+                        .background(backgroundColor)
+                ) {
+                    Text(
+                        text = (number + 1).toString(),
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color.White
+                    )
+                }
+            }
+        }
+    }
+}
