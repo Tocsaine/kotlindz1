@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,12 +20,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.kotlindz1.ui.theme.KotlinDz1Theme
 
@@ -38,7 +41,16 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    SquareList()
+                    val rectangles = rememberSaveable { mutableStateOf(0) }
+                    val phase = rememberSaveable { mutableStateOf(-1) }
+                    if (phase.value == -1) {
+                        SquareList(
+                            rectangles.value,
+                            { rectangles.value++ },
+                            { number -> phase.value = number })
+                    } else {
+                        ShowNumber(number = phase.value) { phase.value = -1 }
+                    }
                 }
             }
         }
@@ -46,8 +58,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun SquareList() {
-    val rectangles = rememberSaveable { mutableStateOf(0) }
+fun SquareList(rectangles: Int, onClickListener: () -> Unit, onSquareClickListener: (Int) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -57,13 +68,13 @@ fun SquareList() {
 
         val columnCount = if (orientation == Configuration.ORIENTATION_PORTRAIT) 3 else 4
 
-        val tmp: MutableList<Int> = MakeList(rectangles.value)
+        val tmp: MutableList<Int> = MakeList(rectangles)
 
-        MakeSquares(tmp, columnCount)
+        MakeSquares(tmp, columnCount, onSquareClickListener)
 
         Button(
             onClick = {
-                rectangles.value++
+                onClickListener()
             },
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -74,9 +85,9 @@ fun SquareList() {
     }
 }
 
-fun MakeList(rectangles : Int): MutableList<Int>{
+fun MakeList(rectangles: Int): MutableList<Int> {
     val tmp: MutableList<Int> = mutableListOf()
-    if(rectangles != 0) {
+    if (rectangles != 0) {
         for (i in 0 until rectangles) {
             tmp.add(i)
         }
@@ -85,7 +96,7 @@ fun MakeList(rectangles : Int): MutableList<Int>{
 }
 
 @Composable
-fun MakeSquares(tmp: MutableList<Int>, columnCount: Int) {
+fun MakeSquares(tmp: MutableList<Int>, columnCount: Int, onClickListener: (Int) -> Unit) {
     val chunkedRectangles = tmp.chunked(columnCount)
     for (row in chunkedRectangles) {
         Row(modifier = Modifier.fillMaxWidth()) {
@@ -98,9 +109,12 @@ fun MakeSquares(tmp: MutableList<Int>, columnCount: Int) {
                         .padding(8.dp)
                         .aspectRatio(1f)
                         .background(backgroundColor)
+                        .clickable {
+                            onClickListener(number)
+                        }
                 ) {
                     Text(
-                        text = (number + 1).toString(),
+                        text = number.toString(),
                         modifier = Modifier.align(Alignment.Center),
                         color = Color.White
                     )
@@ -109,3 +123,23 @@ fun MakeSquares(tmp: MutableList<Int>, columnCount: Int) {
         }
     }
 }
+
+
+@Composable
+fun ShowNumber(number: Int, onClickListener: () -> Unit) {
+    val backgroundColor = if (number % 2 == 0) Color.Red else Color.Blue
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundColor)
+            .clickable {
+                onClickListener()
+            }
+    ) {
+        Box() {
+            Text(text = "$number")
+        }
+    }
+}
+
+
